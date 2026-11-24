@@ -1,0 +1,525 @@
+reminderManager
+//import { playAlertSound } from './alert-sound.js';
+//import { showNotification } from './notification.js';
+
+
+export class ReminderManager {
+  constructor(popupCallback, options = {}) {
+    this.popupCallback = popupCallback;
+    this.onReminderAction = options.onReminderAction ?? (() => {});  // done
+    // Best practice: inject a function to get the current task by ID
+    this.getTodoById = options.getTodoById ?? (() => null); // done
+    this.repeatReminderTime = options.repeatReminderTime ?? 1 * 60 * 1000; // done
+    this.minutesBeforeReminder = options.minutesBeforeReminder ?? 10 * 60 * 1000; //done
+
+    this.activeReminders = new Map(); // Map of task.id -> timeout or interval ID
+  }
+
+  start(todo) {
+    if (!todo || !todo.dueDate) return;
+
+    if (todo.completed || todo.stopReminding) {
+      this.stop(todo.todoId); // Clean up any previous reminders if task became inactive
+      return;
+    }
+
+    // Avoid duplicate starts (hence duplicate timers) - as start called at re-render, reload, add todo, complete todo
+    for (const key of this.activeReminders.keys())
+    if (key.startsWith(todo.todoId)) return; // already scheduled for this phase
+
+    //if (key.startsWith(todo.todoId))
+    const snoozedUntil = todo.snoozedUntil ? new Date(todo.snoozedUntil).getTime() : 0;
+    const dueTime = new Date(todo.dueDate).getTime();
+    const now = Date.now();
+
+    const minutesBeforeReminder = this.minutesBeforeReminder;
+    //const repeatReminderTime = this.repeatReminderTime;
+
+    // Schedule 10-minute before reminder
+    if (dueTime - now > minutesBeforeReminder) { //10 * 60 * 1000
+      const beforeDelay = dueTime - minutesBeforeReminder - now;
+      const beforeTimeout = setTimeout(() => {
+        this._remind(todo, 'Upcoming (10 minutes left!)');
+      }, beforeDelay);
+      this.activeReminders.set(todo.todoId + '_before', beforeTimeout);
+    }
+
+    // Schedule on-time reminder
+    if (dueTime - now > 0) {
+      const onTimeDelay = dueTime - now;
+      const onTimeTimeout = setTimeout(() => {
+        this._remind(todo, 'Due now!');
+        this._startRepeating(todo); // Begin reminder loop after due
+      }, onTimeDelay);
+      this.activeReminders.set(todo.todoId + '_ontime', onTimeTimeout);
+    } else if (snoozedUntil <= now) {
+      // If already overdue and not snoozed, start looping immediately
+      this._startRepeating(todo);
+    } else {
+      // Snoozed but not overdue yet
+      const delay = snoozedUntil - now;
+      const resumeTimeout = setTimeout(() => {
+        this._startRepeating(todo);
+      }, delay);
+      this.activeReminders.set(todo.todoId + '_snooze', resumeTimeout);
+    }
+  }
+
+  _startRepeating(todo) {
+    if (!todo || todo.completed || todo.stopReminding) return;
+    const repeatReminderTime = this.repeatReminderTime;
+
+    const intervalId = setInterval(() => {
+      const current = this.getTodoById(todo.todoId);
+      if (!current || current.completed || current.stopReminding) {
+        clearInterval(intervalId);
+        this.stop(todo.todoId);
+        return;
+      }
+
+      const snoozedTime = current.snoozedUntil ? new Date(current.snoozedUntil).getTime() : 0;
+      if (snoozedTime > Date.now()) {
+        clearInterval(intervalId);
+        const delay = snoozedTime - Date.now();
+        const resumeTimeout = setTimeout(() => {
+          this._startRepeating(current);
+        }, delay);
+        this.activeReminders.set(todo.todoId + '_snooze', resumeTimeout);
+        return;
+      }
+
+      this._remind(current, 'Still overdue!');
+    }, repeatReminderTime); // Every specified mins after due
+
+    this.activeReminders.set(todo.todoId + '_loop', intervalId);
+  }
+
+  _remind(todo, message) {
+    if (todo.completed || todo.stopReminding) {
+      this.stop(todo.todoId);
+      return;
+    }
+
+    const now = Date.now();
+    const snoozedUntil = todo.snoozedUntil ? new Date(todo.snoozedUntil).getTime() : 0;
+
+    // For defensive programming check - extra check
+    if (snoozedUntil > now) {
+      // Skip current reminder; reschedule start after snooze
+      const delay = snoozedUntil - now;
+      const resumeTimeout = setTimeout(() => {
+        this._startRepeating(todo);
+      }, delay);
+      this.activeReminders.set(todo.todoId + '_snooze', resumeTimeout);
+      return;
+    }
+
+    //playAlertSound();
+    this.popupCallback(todo, message, this.onReminderAction);  // customAlertPopup(todo, message); // Use your custom popup
+    //showNotification(`"${todo.task}" - ${message}`);
+  }
+
+  stop(todoId) {
+    // Cancel all timers related to a todo
+    ['_before', '_ontime', '_snooze', '_loop'].forEach(suffix => {
+      const key = todoId + suffix;
+      const id = this.activeReminders.get(key);
+      if (id) {
+        clearTimeout(id);
+        clearInterval(id);
+        this.activeReminders.delete(key);
+      }
+    });
+  }
+
+}
+
+/* Calling reminder manager, popup manager and render todo lsit from mao=in.js
+Example usage
+Suppose in main.js or todos.js you do:
+
+js
+Copy
+Edit
+import { ReminderManager } from './ReminderManager.js';
+import { customAlertPopup } from './popup-manager-component.js';
+import { renderTodoList } from './ui.js'; // assuming this re-renders your todo list
+
+const reminderManager = new ReminderManager(customAlertPopup, {
+  getTodoById: (id) => todos.find(t => t.id === id),
+  onReminderAction: () => renderTodoList()
+});
+
+*/
+
+/* Above changed to - i.e. added for saveTOdos() method calling
+ In your main.js or todos.js:
+js
+Copy
+Edit
+import { ReminderManager } from './ReminderManager.js';
+import { customAlertPopup } from './popup-manager-component.js';
+import { saveTodos, renderTodos } from './storage-or-ui.js'; // adjust path
+
+const reminderManager = new ReminderManager(customAlertPopup, {
+  getTodoById: (id) => todos.find(t => t.id === id),
+
+  // 👇 Callback triggered after "Snooze" or "Stop Reminding"
+  onReminderAction: () => {
+    saveTodos();
+    renderTodos();
+  }
+});
+
+*/
+
+Popup Manager
+import { playAlertSound } from "./sound-alert-component.js";
+
+const popupQueue = [];
+let isPopupShowing = false;
+
+export function customAlertPopup(todo, message, onActionCallback = () => {}) {
+  popupQueue.push({ todo, message, onActionCallback });
+    processNextPopup();
+}
+
+export function processNextPopup() {
+if (isPopupShowing || popupQueue.length === 0) return;
+
+  isPopupShowing = true;
+  const { todo, message, onActionCallback } = popupQueue.shift();
+
+  const popup = document.createElement('div');
+  popup.className = 'reminder-popup-container';
+  popup.innerHTML = `
+    <div class="popup-content">
+      <p>🔴 "${todo.task}" ${message}</p>
+        <button class="btn-snooze">Snooze</button>
+        <button class="btn-stop">Stop Reminding</button>
+        <button class="btn-close">Close</button>
+    </div>
+  `;
+
+  playAlertSound();
+  document.body.appendChild(popup);
+
+  popup.querySelector('.btn-snooze').onclick = () => {
+    const todoSnoozedUntil = new Date(Date.now() + 3 * 60 * 1000); // example 10 min
+    popup.remove();
+    isPopupShowing = false;
+    onActionCallback(todo.todoId, { snoozedUntil: todoSnoozedUntil } ); // <-- trigger UI update
+    processNextPopup();
+  };
+
+  popup.querySelector('.btn-stop').onclick = () => {
+    //todo.stopReminding = true;
+    popup.remove();
+    isPopupShowing = false;
+    onActionCallback(todo.todoId, { stopReminding: true } ); // <-- trigger UI update
+    processNextPopup();
+  };
+
+  popup.querySelector('.btn-close').onclick = () => {
+    popup.remove();
+    isPopupShowing = false;
+    processNextPopup();
+  };
+}
+
+
+Todo Renderer
+
+export class TodoRenderer {
+    constructor(container = document.querySelector('.todo-list-container'), /*reminderManager*/) {
+        //this.container = document.getElementById(containerId);
+        this.container = container;
+        //this.reminderManager = reminderManager;
+    }
+
+    renderTodos(todos) {
+      console.log("Entered renderTodos method ", todos);
+        //const container = document.querySelector('.todo-list-container');
+        // To make ul Idempotent - Check if UL already exists
+        let list = this.container.querySelector('#todo-list');
+        if (!list) {
+            list = document.createElement('ul');
+            list.id = 'todo-list';
+            this.container.appendChild(list);
+        }
+        list.innerHTML = '';
+
+        todos.forEach(todo => {
+        const li = document.createElement('li');
+        li.className = 'fade-in';
+        if (todo.completed) li.classList.add('completed');
+
+        const now = new Date().getTime();
+        //const snoozedTime = todo.snoozedUntil ? new Date(todo.snoozedUntil).getTime() : 0;    // not needed but will check atlast if filtered passing better for reminder logic nstead of all todos
+        const dueDate = new Date(todo.dueDate);
+        let isOverdue = !todo.completed && todo.dueDate && dueDate < now;
+
+        li.innerHTML = `
+        <input type="checkbox" data-action="toggle" data-id="${todo.todoId}" ${todo.completed ? 'checked' : ''}>
+        <span class="todo-text">${todo.task}</span>
+        <span class="meta priority-${todo.priority}">[${todo.priority}]</span>
+        ${todo.dueDate ? `<span class="meta ${isOverdue ? 'overdue' : ''}">${isOverdue ? '🔴' : ''}Due: ${todo.dueDate}</span>` : ''}
+        <button id="btnEdit" data-action="edit" data-id="${todo.todoId}">Edit</button>
+        <button id="btnDelete" data-action="delete" data-id="${todo.todoId}">Delete</button>
+      `;
+            list.appendChild(li);
+            //console.log(list.textContent);
+            //this.reminderManager.start(todo);  //Check to place reminder Manager here or somewhere else
+        });
+    }
+}
+
+
+/*
+export function renderTodos(todos) {
+  const container = document.querySelector('.todo-list-container');
+  container.innerHTML = ''; // clear old list
+
+  const ul = document.createElement('ul');
+  ul.id = 'todo-list';
+
+  todos.forEach(todo => {
+    const li = document.createElement('li');
+    li.textContent = todo.text;
+    ul.appendChild(li);
+  });
+
+  container.appendChild(ul);
+}
+*/
+
+Todo Controller
+import { TodoService } from "./services/todo-service.js";
+
+/**
+ * @param {TodoService} todoService
+ */
+
+export class TodoController {
+  constructor(todoService, todoRenderer, reminderManager) {
+    /** * @type {TodoService} */
+    this.todoService = todoService;
+    this.todoRenderer = todoRenderer;
+    this.reminderManager = reminderManager;
+    //console.log(Object.getOwnPropertyNames(Object.getPrototypeOf(todoService))); - debugging purpose to check the service ans it's members are available
+  }
+
+  init() {
+    // Initial render
+    this.render();
+    
+    // Add Todo
+    document.querySelector('#add-btn').addEventListener('click', () => {
+      const task = document.querySelector('#todo-input').value.trim();
+      const dueDate = document.querySelector('#due-date').value;
+      const priority = document.querySelector('#priority').value;
+
+      if (task === '') return;
+
+      if (task) {
+        this.todoService.addTodo(task, dueDate, priority);
+        this.render();
+        this.clearInputs();
+      }
+      
+    });
+
+    document.getElementById('todo-list').addEventListener('click', (ev) => {
+      const id = Number(ev.target.dataset.id);
+      const action = ev.target.dataset.action;
+
+      if (!id) return;
+
+      if (ev.target.type === 'checkbox' && action === 'toggle') {
+        this.todoService.updateTodo(id, { completed: ev.target.checked });
+        
+        //saveTodos();
+        this.render();
+
+        return; // Exit early tom avoid edit/delete triggering
+      }
+
+      if (action === 'delete') {
+        this.todoService.deleteTodo(id);        
+      } 
+      else if (action === 'edit') {
+        console.log("Todo passed by id ", this.todoService.getTodoById(id));
+      const newText = prompt('Edit task:', this.todoService.getTodoById(id).task);
+        if (newText !== null && newText.trim() !== '') {
+          this.todoService.updateTodo(id, { task: newText });
+        }
+      }
+
+      //saveTodos();
+      this.render();
+    });
+
+    // Filters & sorting
+    document.querySelector('#filter').addEventListener('change', () => this.render());
+    document.querySelector('#sort').addEventListener('change', () => this.render());
+  }
+
+  render() {
+    const todos = this.todoService.filterAndSortTodos(this.getFilter(), this.getSort());
+    this.todoRenderer.renderTodos(todos);
+    todos.forEach(todo => {
+      this.reminderManager.start(todo);  
+    });
+    
+    /*
+    this.todoRenderer.renderTodos(
+      this.todoService.filterAndSortTodos(this.getFilter(), this.getSort())
+    );
+    */
+  }
+
+  getFilter() {
+    return document.querySelector('#filter').value;
+  }
+
+  getSort() {
+    return document.querySelector('#sort').value;
+  }
+
+  clearInputs() {
+    document.querySelector('#todo-input').value = '';
+    document.querySelector('#due-date').value = '';
+  }
+}
+
+
+/*
+export class TodoController {
+  constructor() {
+    this.todoService = new TodoService();
+    this.todoRenderer = new TodoRenderer();
+  }
+
+  init() {
+    // Initial render
+    this.render();
+
+    // Add Todo
+    document.querySelector('#add-btn').addEventListener('click', () => {
+      const task = document.getElementById('todo-input').value.trim();
+      const dueDate = document.getElementById('due-date').value;
+      const priority = document.getElementById('priority').value;
+      if (task) {
+        this.todoService.addTodo(task, dueDate, priority);
+        this.render();
+        this.clearInputs();
+      }
+    });
+
+    // Todo list actions
+    document.getElementById('todo-list').addEventListener('click', (e) => {
+      const id = Number(e.target.dataset.id);
+      const action = e.target.dataset.action;
+      if (!id) return;
+
+      if (action === 'toggle') {
+        this.todoService.updateTodo(id, { completed: e.target.checked });
+      }
+      if (action === 'delete') {
+        this.todoService.deleteTodo(id);
+      }
+      if (action === 'edit') {
+        const newText = prompt("Edit task:");
+        if (newText) this.todoService.updateTodo(id, { task: newText });
+      }
+
+      this.render();
+    });
+
+    // Filters & sorting
+    document.getElementById('filter').addEventListener('change', () => this.render());
+    document.getElementById('sort').addEventListener('change', () => this.render());
+  }
+
+  render() {
+    this.todoRenderer.renderTodos(
+      this.todoService.filterAndSortTodos(this.getFilter(), this.getSort())
+    );
+  }
+
+  getFilter() {
+    return document.getElementById('filter').value;
+  }
+
+  getSort() {
+    return document.getElementById('sort').value;
+  }
+
+  clearInputs() {
+    document.getElementById('todo-input').value = '';
+    document.getElementById('due-date').value = '';
+  }
+}
+*/
+
+
+Todo.js
+import { ReminderManager } from './reminder-manager-component.js';
+import { customAlertPopup } from './popup-manager-component.js';  // check this
+//import { ReminderManager } from './JSComponents/reminder-manager-component.js';
+//import { customAlertPopup } from './popup-manager-component.js';
+import { initAlertSound } from "./sound-alert-component.js";
+import { todoService } from './main.js';
+// import { sessionManager, userStorage } from './main.js';
+import { TodoController } from './todos-controller-component.js';
+import { TodoRenderer } from './todo-renderer-component.js';
+
+//requireLogin();   //no any effect so logic in files script's tag in header tag
+document.addEventListener('DOMContentLoaded', () => {
+
+  initAlertSound();
+  
+  let todoRenderer;
+  let todoController;
+
+  const reminderManager = new ReminderManager(customAlertPopup, {
+    getTodoById: (id) => todoService.getTodoById(id), // (id) => todos.find(t => t.todoId === id) - needed getTodoById(id) method in TodoService
+    // Callback triggered after "Snooze" or "Stop Reminding"
+    onReminderAction: (todoId, todoUpdate) => {
+      //saveTodos();
+      todoService.updateTodo(todoId, todoUpdate);
+      todoRenderer.renderTodos(todoService.filterAndSortTodos(todoController.getFilter(), todoController.getSort()));   // renderTodos();
+    },
+    minutesBeforeReminder: 10 * 60 * 1000, // or any value in minutes
+    repeatReminderTime: 1 * 60 * 1000,
+
+  });
+
+  todoRenderer = new TodoRenderer(document.querySelector('.todo-list-container'), /*reminderManager*/);
+  todoController = new TodoController(todoService, todoRenderer, reminderManager);
+  
+  todoController.init();
+
+});
+
+
+/*
+import { ReminderManager } from './JSComponents/reminder-manager-component.js';
+  import { customAlertPopup } from './JSComponents/popup-manager-component.js';
+
+  document.addEventListener('DOMContentLoaded', () => {
+  window.reminderManager = new ReminderManager(customAlertPopup, {
+
+  getTodoById: (id) => window.todos.find(t => t.todoId === id),
+  // 👇 Callback triggered after "Snooze" or "Stop Reminding"
+  onReminderAction: () => {
+    saveTodos();
+    renderTodos();
+  },
+  minutesBeforeReminder: 10 * 60 * 1000, // or any value in minutes
+  repeatReminderTime: 1 * 60 * 1000,
+
+ });
+ 
+ });
+ */

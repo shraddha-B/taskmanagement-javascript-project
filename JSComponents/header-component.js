@@ -3,14 +3,14 @@ import { authService } from "./main.js";
 
 export function injectHeader(container = document.body) {
   const navbarItems = [
-    { label: 'Home', href: 'index.html' },
+    { label: 'Home', href: 'home.html' },
     { label: 'Todos', href: 'todos.html' },
     { label: 'About', anchor: 'about' },
     { label: 'Contact', anchor: 'contact' },
   ];
 
-  const currentPage = location.pathname.split('/').pop() || 'index.html';
-  const isHome = currentPage === '' || currentPage === 'index.html';
+  const currentPage = location.pathname.split('/').pop() || 'home.html';
+  const isHome = currentPage === '' || currentPage === 'home.html';
 
   const header = document.createElement('header');
   header.className = 'header';
@@ -37,7 +37,7 @@ export function injectHeader(container = document.body) {
         link.addEventListener('click', handleLink);
       }
     } else {
-      link.href = isHome ? `#${item.anchor}` : `index.html#${item.anchor}`;
+      link.href = isHome ? `#${item.anchor}` : `home.html#${item.anchor}`;
     }
     //console.log(link.href);
     link.textContent = item.label;
@@ -50,7 +50,7 @@ export function injectHeader(container = document.body) {
   container.prepend(header);
 
   /* For smooth navigation */
-  if (currentPage === 'index.html') {
+  if (currentPage === 'home.html') {
     document.addEventListener('click', (e) => {
       const target = e.target.closest('a[href^="#"]');
       if (!target) return;

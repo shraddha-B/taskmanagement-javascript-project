@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    const user = localStorage.getItem("currentUser");
+    if (!user) {
+      window.location.href = "home.html";
+    }
+  </script>
+  <!-- // Partial page is diplayed with flicker at initial due to file loading and parsing before rendering starts
+  <script type="module">
+    import { requireLogin } from './services/session-component.js';
+    requireLogin(); // Redirects early if not logged in
+  </script>
+  -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="Styles/ui-components.css">
+  <!-- <script type="module" src="JSComponents/pages/todos.js"></script> -->
+  <script type="module" src="JSComponents/main.js"></script>
+  <title>Task Management App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      /*padding: 0 30px;*/
+      background-color: rgb(83, 80, 80);
+      margin: 0;
+    }
+
+    .manage-container-left-side h3 {
+      color: whitesmoke;
+    }
+
+    /* Manage Task Upper row input Style */
+    .todo-inputs {
+      display: flex;
+      flex-wrap: wrap;
+      flex: 0 1 auto;
+      min-width: 0;
+      gap: 10px;
+      margin-bottom: 15px;
+      background: rgb(36, 132, 164);
+    }
+
+    /* Inputs / List / Reminder text/button/dropdown Style */
+    .todo-inputs input,
+    .todo-inputs select,
+    .todo-inputs button,
+    .todo-controls input,
+    .todo-controls select,
+    li button,
+    .popup-box button {
+      padding: 5px;
+      font-size: 12px;
+      border-radius: 5px;
+      border: 1px solid rgb(133, 211, 236);
+    }
+
+    label {
+      font-weight: 500;
+    }
+
+    /* Add / List / Reminder button Style */
+    .todo-inputs button,
+    li button,
+    .popup-box button {
+      background-color: rgb(133, 211, 236);
+      color: rgb(44, 130, 159);
+      font-weight: bold;
+      /*border: none;*/
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    /* List button Style */
+    li button {
+      background: rgb(44, 130, 159);
+      color: rgb(133, 211, 236);
+      font-weight: bold;
+    }
+
+    li #btnEdit {
+      margin-right: 10px;
+    }
+
+    /* Add / Reminder / List button Animation Style */
+    .todo-inputs button:hover,
+    li button:hover,
+    .popup-box button:hover {
+      color: rgb(133, 211, 236);
+      background-color: rgb(34, 100, 123);
+    }
+
+    /* Manage Task lower row input Style */
+    .todo-controls {
+      display: flex;
+      flex-wrap: wrap;
+      min-width: 0;
+      gap: 10px;
+      flex: 0 1 auto;
+      margin-bottom: 15px;
+    }
+
+    /* List Style */
+    #todo-list {
+      list-style-type: none;
+      padding: 0 5px;
+      margin: 2px;
+    }
+
+    #todo-list li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      word-break: break-word;
+      /* Forcing long words to break */
+      background: rgb(133, 211, 236);
+      margin: 6px 0;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    li.completed span.todo-text {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    li span.todo-text {
+      flex: 1;
+      /*flex-grow: 1; - puts items on different lines when wrapped and in contrast flex:1 keeps in same line all items when wrapped*/
+    }
+
+    .meta {
+      font-size: 0.8em;
+      color: rgb(34, 100, 123);
+      margin-right: 10px;
+    }
+
+    .priority-high {
+      color: red;
+    }
+
+    .priority-medium {
+      color: orange;
+    }
+
+    .priority-low {
+      color: green;
+    }
+
+    .overdue {
+      color: red;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    /* List Animation Style */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Task Manage Container Style */
+    .todo-list-manage-container {
+      display: flex;
+      justify-content: space-between;
+      /*align-items: flex-start;*/
+      gap: 10px;
+      background-color: rgb(44, 130, 159);
+      padding: 10px;
+      margin: 5px 30px 0;
+      border-radius: 20px;
+      position: sticky;
+      top: 0;
+      /*For avoiding animation flickering bublled from todo list*/
+      /*background-color: white; - background needed if element is tranparent*/
+      z-index: 10;
+      transform: translateZ(0);
+      isolation: isolate;
+      contain: paint;
+      overflow: visible;
+    }
+
+    /* Task Manage Right side Container Style */
+    .manage-container-right-side {
+      display: flex;
+      flex: 0 1 50%;
+      min-width: 0;
+      justify-content: center;
+      align-items: center;
+      /*border-radius: ;*/
+      /*padding-right: 40px;*/
+    }
+
+    /* Task Manage Left side Container Style */
+    .manage-container-left-side {
+      display: flex;
+      flex-direction: column;
+      flex: 0 1 50%;
+      flex-wrap: wrap;
+      min-width: 0;
+      justify-content: center;
+    }
+
+    /* Card style */
+    .cardContainer {
+      /*float: left;*/
+      width: 120px;
+      background-color: pink;
+      border: 1px solid black;
+      /*box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);*/
+      box-shadow: 10px 10px 5px black;
+      text-align: center;
+    }
+
+    .cardHeader {
+      color: black;
+      font-size: 12px;
+    }
+
+    .cardFooter {
+      background-color: whitesmoke;
+      border: solid whitesmoke;
+      font-size: 10px;
+    }
+
+    .card_rotate_right {
+      transform: rotate(7deg);
+      background-color: pink;
+    }
+
+    .card_rotate_left {
+      transform: rotate(-8deg);
+      background-color: lightblue;
+    }
+
+    /* Todo List Container Style */
+    .todo-list-container {
+      background-color: rgb(44, 130, 159);
+      padding: 5px;
+      margin: 5px 40px;
+      border-radius: 20px;
+    }
+
+    /* Parent Container Style */
+    .parent-container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      /*Pushes footer at bottom - Here not needed as footer is fixed */
+    }
+
+    /* Main Container Style  */
+    .main-container {
+      flex: 1;
+      /*min-height: 100vh; -  check later why to use*/
+    }
+
+    /* Reminder Popup Style */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      /* will be display: flex later in js code to unhide */
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .popup-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 300px;
+    }
+
+    .popup-box button {
+      margin: 5px;
+    }
+
+    /* Migrated */
+    /* Style Footer
+    .footer {
+      height: 7%;     
+      background-color: rgb(34, 100, 123);
+      color: white;     
+      margin: 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+   .footer div {
+    text-align: center;
+    transform: translateY(50%);
+  }
+  */
+
+
+
+    /* Migrated */
+    /* Style Header */
+    /*
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      /* Allow items to wrap on smaller screens
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background-color: rgb(34, 100, 123);
+      position: sticky;
+      top: 0;
+      z-index:11;
+      /*Needed if need to place header at top (while scrolling)
+    }
+
+    /* Style Navbar
+    .navbar {
+      display: flex;
+      flex: 4;
+      gap: 15px;
+      margin: 0;
+    }
+
+    /* Style Title h2 in Header
+    .header h2 {
+      flex: 6;
+      color: white;
+      margin: 0;
+    }
+
+    /* Style Navigation Bar links
+    .navbar a {
+      color: rgb(222, 217, 217);
+    }
+
+    /* Links hover effect - Change color
+    .navbar a:hover {
+      background-color: rgb(133, 211, 236);
+      color: rgb(34, 100, 123);
+      border-radius: 3px;  
+    }
+    */
+
+    /* For Small Screens (mobile) Style */
+    @media (max-width: 700px) {
+      .header {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .navbar,
+      .header h2 {
+        flex: 0 0 auto;
+        width: 100%;
+        text-align: center;
+      }
+
+      .navbar {
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Adjusting left side flex container's items alignment center*/
+      .todo-controls {
+        flex-direction: column;
+        gap: 1px;
+        margin-bottom: 0;
+      }
+    }
+
+    /* Style for small screens (mobile) */
+  </style>
+</head>
+
+<body>
+  <div class="parent-container">
+    <!-- Migrated
+    <header class="header">
+      Navigation Bar
+      <div class="navbar">
+        <a href="#">Home</a>
+        <a href="#">Todo</a>
+        <a href="#">About</a>
+        <a href="#">Contact</a>
+      </div>
+      <h2>Task Management App</h2>
+    </header>
+    -->
+
+    <div class="main-container">
+      <div class="todo-list-manage-container">
+
+        <div class="manage-container-left-side">
+          <h3>Manage Your Tasks</h3>
+
+          <div class="todo-inputs">
+            <input type="text" id="todo-input" placeholder="Task">
+            <input type="date" id="due-date">
+            <select id="priority">
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+            <button onclick="addTodo()">Add</button>
+          </div>
+
+          <div class="todo-controls">
+            <label for="filter">Filter:</label>
+            <select id="filter" onchange="renderTodos()">
+              <option value="all">All</option>
+              <option value="completed">Completed</option>
+              <option value="incomplete">Incomplete</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+
+            <label for="sort">Sort by:</label>
+            <select id="sort" onchange="renderTodos()">
+              <option value="date">Due Date</option>
+              <option value="date-desc">Due Date (Descending)</option>
+              <option value="priority">Priority (High - Low)</option>
+              <option value="priority-desc">Priority (Low - High)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="manage-container-right-side">
+          <!--Create Cards (Text) - Paper-like cards-->
+          <div class="cardContainer card_rotate_right">
+            <div class="cardHeader">
+              <b>
+                <ul>
+                  <li>Todo 1</li>
+                  <li>Todo 2</li>
+                  <li>Todo 3</li>
+                </ul>
+              </b>
+            </div>
+
+            <div class="cardFooter">
+              <p><b>August 30, 2025</b></p>
+            </div>
+          </div>
+
+          <div class="cardContainer card_rotate_left">
+            <div class="cardHeader">
+              <b>
+                <ul>
+                  <li>Todo 1</li>
+                  <li>Todo 2</li>
+                  <li>Todo 3</li>
+                </ul>
+              </b>
+            </div>
+
+            <div class="cardFooter">
+              <p><b>August 2, 2025</b></p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="todo-list-container">
+        <ul id="todo-list"></ul>
+      </div>
+
+    </div>
+    <!--Migrated-->
+    <!--
+    <footer class="footer">Copyright &copy; ABC Management Services</footer>
+    -->
+
+  </div>
+
+  <audio id="alert-sound" src="sounds/alert-notification-sound.wav" preload="auto"></audio>
+
+  <div id="reminder-popup" class="popup-overlay">
+    <div class="popup-box">
+      <p id="popup-text"></p>
+      <button id="popup-snooze">Snooze 5 min</button>
+      <button id="popup-stop">Stop Reminding</button>
+      <button id="popup-close">Close</button>
+    </div>
+  </div>
+
+  <script>
+
+    let todos = [];
+    let userId = Number(localStorage.getItem("lastId")) || 0; // Persisted ID counter
+    const setReminders = new Set();
+    //let poupStatusActive = false;
+    const popupQueue = [];
+    let isPopupShowing = false;
+
+    function playAlertSound() {
+      const sound = document.getElementById('alert-sound');
+      if (sound) {
+        sound.play();
+      }
+    }
+
+    // Ask for permission once
+    if ('Notification' in window && Notification.permission !== 'granted') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          console.log("✅ Notification permission granted.");
+        } else {
+          console.log("❌ Notification permission denied.");
+        }
+      });
+    }
+
+    // Helper to show notification
+    function showNotification(message) {
+      if (Notification.permission === 'granted') {
+        new Notification("Todo Reminder", { body: message });
+      }
+    }
+
+    window.onload = function () {
+      const stored = localStorage.getItem('todos');
+      if (stored) {
+        todos = JSON.parse(stored);
+        renderTodos();
+      }
+      //console.log("Notification permission:", Notification.permission);
+
+    };
+
+    function saveTodos() {
+      localStorage.setItem('todos', JSON.stringify(todos));
+    }
+
+    function addTodo() {
+      const todo_Text = document.getElementById('todo-input').value.trim();
+      const due_Date = document.getElementById('due-date').value;
+      const _priority = document.getElementById('priority').value;
+
+      if (text === '') return;
+
+      ++id;
+      localStorage.setItem("lastId", id);
+      todos.push({
+        userId: id,
+        todoText: todo_Text,
+        dueDate: due_Date,
+        priority: _priority,
+        completed: false,
+        snoozedUntil: null,
+        stopReminding: false
+      });
+
+      saveTodos();
+      renderTodos();
+
+      document.getElementById('todo-input').value = '';
+      document.getElementById('due-date').value = '';
+    }
+
+    function renderTodos() {
+      const list = document.getElementById('todo-list');
+      list.innerHTML = '';
+
+      const filter = document.getElementById('filter').value;
+      const sort = document.getElementById('sort').value;
+
+      let filtered = todos.filter(todo => {
+        if (filter === 'completed') return todo.completed;
+        if (filter === 'incomplete') return !todo.completed;
+        if (filter === 'high') return todo.priority === "high";
+        if (filter === 'medium') return todo.priority === "medium";
+        if (filter === 'low') return todo.priority === "low";
+        return true;
+      });
+
+      const order = { high: 1, medium: 2, low: 3 };
+      if (sort === 'date') {
+        filtered.sort((a, b) => new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31'));
+      } else if (sort === 'date-desc') {
+        filtered.sort((a, b) => new Date(b.dueDate || '9999-12-31') - new Date(a.dueDate || '9999-12-31'));
+      } else if (sort === 'priority') {
+        filtered.sort((a, b) => order[a.priority] - order[b.priority]); // High - low
+      } else if (sort === 'priority-desc') {
+        filtered.sort((a, b) => order[b.priority] - order[a.priority]); // Low - high
+      }
+
+      filtered.forEach((todo) => {
+        const li = document.createElement('li');
+        li.className = 'fade-in';
+        if (todo.completed) li.classList.add('completed');
+        //let i = todos.indexOf(todo); - works but okay for small apps but not for production level as can create problem while serialization
+        const now = new Date().getTime();
+        const snoozedTime = todo.snoozedUntil ? new Date(todo.snoozedUntil).getTime() : 0;
+        const dueDate = new Date(todo.dueDate);
+        let isOverdue = !todo.completed && todo.dueDate && dueDate < now;
+
+        li.innerHTML = `
+        <input type="checkbox" data-action="toggle" data-id="${todo.id}" ${todo.completed ? 'checked' : ''}>
+        <span class="todo-text">${todo.text}</span>
+        <span class="meta priority-${todo.priority}">[${todo.priority}]</span>
+        ${todo.dueDate ? `<span class="meta ${isOverdue ? 'overdue' : ''}">${isOverdue ? '🔴' : ''}Due: ${todo.dueDate}</span>` : ''}
+        <button id="btnEdit" data-action="edit" data-id="${todo.id}">Edit</button>
+        <button id="btnDelete" data-action="delete" data-id="${todo.id}">Delete</button>
+      `;
+        list.appendChild(li);
+
+        // console.log(setReminders.has(todo.id) + " 1 " + todo.text);
+        // console.log(todo.snoozedUntil + " " + todo.stopReminding);
+        // console.log(todo.dueDate && !todo.completed && (!todo.snoozedUntil || new Date(todo.snoozedUntil).getTime() < Date.now()) && !(setReminders.has(todo.id)));
+        //console.log((!todo.snoozedUntil || new Date(todo.snoozedUntil).getTime() < Date.now()));
+        //console.log("last check-------------");
+        // console.log("snoozedUntil:", snoozedTime, "| now:", Date.now(), "| comparison snoozedTime < Date.now():", snoozedTime < Date.now());
+        // console.log("1st Snooze time snoozedTime > Date.now()", snoozedTime, " ", Date.now(), " - ", snoozedTime > Date.now());
+        // Reminders (only if not completed)
+        if (todo.dueDate && !todo.completed && !todo.stopReminding && snoozedTime < Date.now() && !(setReminders.has(todo.id))) {
+          setReminders.add(todo.id);
+          // console.log(setReminders.has(todo.id) + " 2 " + todo.text);
+          const msUntilDue = dueDate - now;
+          const earlyOffset = 10 * 60 * 1000; // 10 minutes before
+          const afterInterval = 60 * 1000; // every 5 minutes after due
+
+          // Reminder before due
+          const msUntilEarly = msUntilDue - earlyOffset;
+          if (msUntilEarly > 0) {
+            setTimeout(() => {
+              //alert(`🟡 "${todo.text}" 1 is due in 10 minutes!`);
+              customAlertPopup(todo);
+              showNotification(`"${todo.text}" is due in 10 minutes!`);
+            }, msUntilEarly);
+          }
+
+          // Reminder at due time + after overdue loop
+          if (msUntilDue > 0) {
+            setTimeout(() => {
+              customAlertPopup(todo);
+              showNotification(`"${todo.text}" is now due!`);
+     
+                const intervalId = setInterval(() => {
+                  const task = todos.find(t => t.id === todo.id);
+                  
+              const snoozedTime = task?.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0;
+              const delay = snoozedTime > Date.now()  ? snoozedTime - Date.now() : 0;
+
+                  if (!task || task.completed || task.stopReminding || snoozedTime > Date.now()) {
+                    clearInterval(intervalId);
+                    setReminders.delete(task.id);
+                  }
+
+                  playAlertSound();
+                  customAlertPopup(task);
+                  showNotification(`"${task.text}" is still overdue!`);
+                }, afterInterval);
+            
+            }, msUntilDue);
+          } else {
+            //console.log("snoozedTime ", snoozedTime, " delay ", delay, " Date.now() ", Date.now(), " Greater check ", snoozedTime > Date.now());
+            
+              const intervalId = setInterval(() => {
+                const task = todos.find(t => t.id === todo.id);
+                const snoozedTime = task?.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0;
+              const delay = snoozedTime > Date.now() ? snoozedTime - Date.now() : 0;
+                if (!task || task.completed || task.stopReminding || snoozedTime > Date.now()) {
+                  clearInterval(intervalId);
+                  setReminders.delete(task.id);
+                }
+
+                playAlertSound();
+                customAlertPopup(task);
+                showNotification(`"${task.text}" is still overdue!`);
+              }, afterInterval);
+            
+          }
+        }
+      });
+    }
+
+    document.getElementById('todo-list').addEventListener('click', function (ev) {
+      const id = ev.target.dataset.id;
+      const action = ev.target.dataset.action;
+
+      if (!id) return;
+
+      const index = todos.findIndex(todo => todo.id == id);
+      if (index === -1) return;
+
+      if (ev.target.type === 'checkbox' && action === 'toggle') {
+        todos[index].completed = ev.target.checked;
+        if (todos[index].completed) {
+          setReminders.delete(todos[index].id); // setReminders.delete(todo.id);
+        }
+
+        saveTodos();
+        renderTodos();
+
+        /* If don't want render to run after checkbox toggling instead the event handler itself handle the required processing
+        const li = ev.target.closest('li');
+        if (todos[index].completed) {
+          li.classList.add('completed');
+        } else {
+          li.classList.remove('completed');
+        }
+        const now = new Date();
+        const dueDate = new Date(todos[index].dueDate);
+        let isOverdue = !todos[index].completed && todos[index].dueDate && dueDate < now;
+        let dueDateSpan = li.querySelector(".due-date");
+        if (isOverdue) {
+          dueDateSpan.classList.add('overdue');
+        }
+        else {
+          dueDateSpan.classList.remove('overdue');
+        } */
+
+        return; // Exit early tom avoid edit/delete triggering
+      }
+
+      if (action === 'delete') {
+        todos.splice(index, 1);
+      } else if (action === 'edit') {
+        const newText = prompt('Edit task:', todos[index].text);
+        if (newText !== null && newText.trim() !== '') {
+          todos[index].text = newText.trim();
+        }
+      }
+
+      saveTodos();
+      renderTodos();
+    });
+
+    function customAlertPopup(todo) {
+      popupQueue.push(todo);
+      processNextPopup();
+    }
+
+    function processNextPopup() {
+      if (isPopupShowing || popupQueue.length === 0) return;
+
+      const todo = popupQueue.shift();
+      const popup = document.getElementById('reminder-popup');
+      document.getElementById('popup-text').textContent = `🔴 "${todo.text}" is overdue!`;
+      popup.style.display = 'flex';
+      isPopupShowing = true;
+
+      document.getElementById('popup-snooze').onclick = () => {
+        todo.snoozedUntil = new Date(Date.now() + 2 * 60 * 1000);
+        // console.log("Snoozed time set ***********************", new Date(Date.now() + 2 * 60 * 1000));
+        //setReminders.delete(todo.id);
+        popup.style.display = 'none';
+        saveTodos();
+        renderTodos();
+        isPopupShowing = false;
+        processNextPopup();
+      };
+
+      document.getElementById('popup-stop').onclick = () => {
+        todo.stopReminding = true;
+        popup.style.display = 'none';
+        saveTodos();
+        renderTodos();
+        isPopupShowing = false;
+        processNextPopup();
+      };
+
+      document.getElementById('popup-close').onclick = () => {
+        popup.style.display = 'none';
+        isPopupShowing = false;
+        processNextPopup();
+      };
+    }
+
+    /*
+    function customAlertPopup(todo) {
+    const popup = document.getElementById('reminder-popup');
+    //document.getElementById('popup-text').textContent = "";
+    document.getElementById('popup-text').textContent = `🔴 "${todo.text}" is overdue!`;
+    popup.style.display = 'flex';
+    console.log("A", todo.text, " ", popup.style.display);
+  
+    document.getElementById('popup-snooze').onclick = () => {
+    document.getElementById('popup-text').textContent = "";
+    todo.snoozedUntil = new Date(Date.now() + 2 * 60 * 1000);
+    console.log("B", todo.text);
+    setReminders.delete(todo.id); // Clear/reset for reminder to schedule again later
+    popup.style.display = 'none';
+  
+    saveTodos();
+    renderTodos();
+  
+    };
+  
+    document.getElementById('popup-stop').onclick = () => {
+    todo.stopReminding = true;
+    popup.style.display = 'none';
+    console.log("C", todo.text);
+  
+    saveTodos();
+    renderTodos();
+  
+    };
+  
+    document.getElementById('popup-close').onclick = () => {
+    popup.style.display = 'none';
+    console.log("D", todo.text);
+    };
+    }
+    */
+
+  </script>
+
+</body>
+
+</html>
