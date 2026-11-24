@@ -1,0 +1,206 @@
+✅ Thanks for sharing your code. Based on what you asked, I'll help you **modularize the login/auth logic**, separating UI interactions from storage logic as per best practices. Here's how we can structure it:
+
+---
+
+### ✅ New Modular File Structure (recommended):
+
+```
+/js
+  ├── auth.js             # Handles modal, UI events, switching forms
+  ├── auth-service.js     # Manages localStorage and user data logic
+  ├── toast.js            # Already migrated: handles toast display
+  ├── spinner.js          # Already migrated: handles spinner logic
+```
+
+---
+
+### ✅ 1. `auth-service.js`
+```js
+// auth-service.js
+
+export function getUsers() {
+  return JSON.parse(localStorage.getItem('users') || '{}');
+}
+
+export function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+export function registerUser(name, password) {
+  const users = getUsers();
+  users[name] = { password, isFirstLogin: true };
+  saveUsers(users);
+}
+
+export function loginUser(name) {
+  const users = getUsers();
+  users[name].isFirstLogin = false;
+  saveUsers(users);
+  localStorage.setItem('currentUser', name);  // session file should be different
+}
+
+
+export function isUserExist(name) {
+  const users = getUsers();
+  return users[name];
+}
+
+export function validatePassword(name, password) {
+  const users = getUsers();
+  return users[name].password === password;
+}
+
+export function getCurrentUser() {
+  return localStorage.getItem('currentUser');
+}
+
+export function logout() {
+  localStorage.removeItem('currentUser');
+}
+```
+
+---
+
+### ✅ 2. Updated `auth.js`
+```js
+// auth.js
+
+import { showToast } from './toast.js';
+import { showSpinner, hideSpinner } from './spinner.js';
+import {
+  registerUser, loginUser, getUsers,
+  isUserExist, validatePassword
+} from './auth-service.js';
+
+let mode = 'login';
+
+const modal = document.getElementById('authModal');
+const modalContent = document.getElementById('modalContent');
+const titleEl = document.getElementById('formTitle');
+const switchLink = document.getElementById('switchLink');
+const submitBtn = document.getElementById('submitBtn');
+const confirmRow = document.getElementById('confirmRow');
+const errorContainer = document.getElementById('errorContainer');
+
+export function showAuthModal(startMode = 'login') {
+  mode = startMode;
+  updateForm();
+  modal.classList.add('show');
+}
+
+export function closeAuthModal() {
+  modal.classList.remove('show');
+}
+
+function updateForm() {
+  if (mode === 'login') {
+    modalContent.classList.remove('register');
+    titleEl.textContent = 'Login';
+    submitBtn.textContent = 'Login';
+    switchLink.innerHTML = "Don't have an account? <u>Register</u>";
+  } else {
+    modalContent.classList.add('register');
+    titleEl.textContent = 'Register';
+    submitBtn.textContent = 'Register';
+    switchLink.innerHTML = 'Already have an account? <u>Login</u>';
+  }
+  errorContainer.textContent = '';
+}
+
+switchLink.addEventListener('click', () => {
+  mode = (mode === 'login') ? 'register' : 'login';
+  updateForm();
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeAuthModal();
+});
+
+document.getElementById('authForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  errorContainer.textContent = '';
+
+  const username = document.getElementById('username');
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+
+  [username, password, confirmPassword].forEach(input => input.classList.remove('error'));
+
+  const name = username.value.trim();
+
+  if (!name) {
+    username.classList.add('error');
+    errorContainer.textContent = 'Username is required';
+    return;
+  }
+  if (!password.value || password.value.length < 6) {
+    password.classList.add('error');
+    errorContainer.textContent = 'Password must be at least 6 characters';
+    return;
+  }
+
+  showSpinner();
+
+  setTimeout(() => {
+    if (mode === 'register') {
+      if (!confirmPassword.value || password.value !== confirmPassword.value) {
+        confirmPassword.classList.add('error');
+        errorContainer.textContent = 'Passwords do not match';
+        hideSpinner();
+        return;
+      }
+      if (isUserExist(name)) {
+        errorContainer.textContent = 'User already exists';
+        hideSpinner();
+        return;
+      }
+      registerUser(name, password.value);
+      showToast('Registered successfully!');
+      mode = 'login';
+      updateForm();
+    } else {
+      if (!isUserExist(name)) {
+        errorContainer.textContent = 'User not found. Please register.';
+        hideSpinner();
+        return;
+      }
+      if (!validatePassword(name, password.value)) {
+        errorContainer.textContent = 'Incorrect password';
+        hideSpinner();
+        return;
+      }
+      loginUser(name);
+      showToast('Login successful!');
+      setTimeout(() => {
+        window.location.href = 'dashboard2.html';
+      }, 1000);
+    }
+    hideSpinner();
+  }, 1000);
+});
+```
+
+---
+
+### ✅ 3. Example usage in `index.html`
+At the bottom of `<body>`:
+```html
+<script type="module">
+  import { showAuthModal } from './js/auth.js';
+  import { getCurrentUser } from './js/auth-service.js';
+
+  document.getElementById('openModal').addEventListener('click', e => {
+    e.preventDefault();
+    showAuthModal('login');
+  });
+
+  const user = getCurrentUser();
+  if (user) {
+    document.body.insertAdjacentHTML('afterbegin', `<h2 style="border:solid;text-align:center; color: white;">Welcome back, ${user}!</h2>`);
+  }
+</script>
+```
+
+---
+
+If you want me to generate **all these files into one downloadable ZIP** or continue step-by-step, just let me know.

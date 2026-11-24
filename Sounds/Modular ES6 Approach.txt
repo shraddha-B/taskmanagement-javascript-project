@@ -1,0 +1,115 @@
+Break your JS into modules like:
+auth.js
+export function showAuthModal() {
+  if (document.getElementById('auth-modal')) return;
+
+  const modalHTML = `
+    <div id="auth-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>Login / Register</h2>
+        <input type="text" placeholder="Username" id="auth-username">
+        <input type="password" placeholder="Password" id="auth-password">
+        <button id="auth-submit">Submit</button>
+        <button onclick="closeAuthModal()">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  document.getElementById('auth-submit').onclick = submitAuth;
+}
+
+export function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.remove();
+}
+
+export function submitAuth() {
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+
+  if (!username || !password) {
+    showToast("Please enter username and password.");
+    return;
+  }
+
+  closeAuthModal();
+  showSpinner();
+
+  setTimeout(() => {
+    hideSpinner();
+
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    const existing = users.find(u => u.username === username);
+
+    if (existing) {
+      if (existing.password === password) {
+        localStorage.setItem("loggedInUser", username);
+        showToast("Login successful!");
+      } else {
+        showToast("Incorrect password.");
+      }
+    } else {
+      users.push({ username, password });
+      localStorage.setItem("users", JSON.stringify(users));
+      localStorage.setItem("loggedInUser", username);
+      showToast("Registration successful!");
+    }
+  }, 1000);
+}
+
+
+ui-components.js
+export function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+export function showSpinner() {
+  if (document.getElementById('spinner')) return;
+  const spinnerHTML = `<div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+}
+
+export function hideSpinner() {
+  const sp = document.getElementById('spinner');
+  if (sp) sp.remove();
+}
+
+
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modular Demo</title>
+  <link rel="stylesheet" href="ui-components.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header>
+    <h1>My App</h1>
+    <nav>
+      <span id="login-btn">
+        <i class="fa fa-user"></i> Login
+      </span>
+    </nav>
+  </header>
+</body>
+</html>
+
+
+main.js (entry point)
+
+import { showAuthModal } from './auth.js';
+
+document.getElementById('login-btn').onclick = showAuthModal;
+
+
+
+**********************************************************************************Further usggestion for auth and service for same **************************************************************
+
+

@@ -1,0 +1,488 @@
+        /* Header Style */
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allow items to wrap on smaller screens */
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: #32373c;/* rgb(34, 100, 123); */
+            position: sticky;
+            top: 0;
+            z-index: 11;
+            /* To place at top of Banner */
+        }
+
+        /* Navbar Style */
+        .navbar {
+            display: flex;
+            flex: 4;
+            gap: 15px;
+            margin: 0;
+        }
+
+        /* Title h2 in Header Style */
+        .header h2 {
+            flex: 6;
+            color: #F5F5DC;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        /* Navigation Bar links Style */
+        .navbar a {
+            color: rgb(222, 217, 217);
+        }
+
+        /* Change color on hover */
+        .navbar a:hover {
+            background-color: rgb(133, 211, 236);
+            color: rgb(34, 100, 123);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Login/Register Style */
+        .login-wrapper {
+            position: fixed;
+            display: flex;
+            gap: 10px;
+            top: 15px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .login-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            /*flex-wrap: wrap; - now added*/
+            /*gap: 10px;*/
+        }
+
+        .login-icon {
+            cursor: pointer;
+        }
+
+        .login-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgb(44, 130, 159);
+            border-radius: 10px;
+            white-space: nowrap;
+            border: 2px solid whitesmoke;
+
+        }
+
+        .login-container:hover .login-dropdown {
+            display: block;
+        }
+
+        .login-dropdown a {
+            display: block;
+            padding: 8px 20px;
+            color: whitesmoke;
+            text-decoration: none;
+        }
+
+        .login-dropdown a:hover {
+            background-color: rgb(34, 100, 123);
+            border-radius: 10px;
+            /* included for after hovering the border raidus effect remains effective (else it is not) */
+        }
+
+        .greeting-message {
+            /*flex-wrap: wrap; - now added*/
+            color: #F5F5DC;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        /* Login/Register Style */
+
+        /* till here copied */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: Arial, sans-serif;
+            /* style from body to modal - for font style of form's all elements to change */
+        }
+
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            position: relative;
+            /* for placing toast message at within form container  (relative to form) */
+            background: rgb(34, 100, 123);
+            /* #222;*/
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            color: whitesmoke;
+            background-color: rgb(44, 130, 159);
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 10;
+            padding: 2px 4px 0;
+        }
+
+        .modal-content h2 {
+            color: whitesmoke;
+        }
+
+        .modal-content input,
+        .modal-content button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .modal-content button {
+            background: rgb(44, 130, 159);
+            /* #0a84ff;*/
+            color: white;
+            cursor: pointer;
+        }
+
+        .switch-link {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            color: whitesmoke;
+            cursor: pointer;
+        }
+
+        .switch-link:hover {
+            text-decoration: underline;
+        }
+
+        #confirmRow {
+            display: none;
+        }
+
+        .modal-content.register #confirmRow {
+            display: block;
+        }
+
+        .error {
+            border: 10px solid red;
+        }
+
+        .error-msg {
+            font-size: 0.8rem;
+            color: #ff5555;
+            margin-bottom: 8px;
+        }
+
+        /* Login/Register Style */
+
+
+        /* Banner Fade Slider Style */
+        .banner-fade-slider {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px;
+            /*overflow: hidden;*/
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        button.prev,
+        button.next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2;
+            /*TO keep buttons all the time (visible) above slides*/
+        }
+
+        button.prev {
+            left: 10px;
+        }
+
+        button.next {
+            right: 10px;
+        }
+
+        /* Toggle Panel Style */
+        .toggle-panel-container {
+            max-width: 600px;
+            /*border: solid;*/
+            /* border: 1px solid lightblue; */
+            border-radius: 6px;
+            /*box-shadow: 0 2px 5px rgba(173, 216, 230, 0.4); */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .toggle-panel-section {
+            padding: 15px;
+        }
+
+        .toggle-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid lightblue;
+            border-radius: 10px;
+        }
+
+        .toggle-panel-arrow {
+            color: lightblue;
+            padding-right: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-panel-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .toggle-panel-content {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.5s ease;
+            padding: 0 15px;
+        }
+
+        .toggle-panel-content>div {
+            padding: 15px 0;
+        }
+
+        /* Footer Style */
+        .footer {
+            margin: 0;
+            height: 7%;
+            background-color: rgb(34, 100, 123);
+            color: #F5F5DC;
+            /* Need to place footer fixed with three offsets to avoid scrollbars after adding animation of scrolling from right to left */
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        /* Text within todos footer Style */
+        .footerMessage {
+            text-align: center;
+            transform: translateY(50%);
+        }
+
+        /* Sliding logos Style */
+        .logo-container {
+            display: flex;
+            gap: 50px;
+            position: absolute;
+            align-items: center;
+            height: 100%;
+            /* For Center vertically div within Footer - top and transform properties */
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            animation: scrollLeft 70s linear infinite;
+        }
+
+        .logo {
+            width: 80px;
+            height: 30px;
+            transition: transform 2.5s ease-in-out;
+            animation: pulseGlow 10s infinite ease-in-out;
+        }
+
+        /* focus effect */
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+            }
+
+            50% {
+                transform: scale(1.3);
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+            }
+        }
+
+        /* Move logos right to left */
+        @keyframes scrollLeft {
+            0% {
+                left: 100%;
+            }
+
+            100% {
+                left: -100%;
+            }
+        }
+
+
+        /* Spinner and Toast Message Style*/
+
+        /* Spinner */
+        .spinner-container {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            border: 6px solid #ccc;
+            border-top: 6px solid #0a84ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast */
+        .toast {
+            /* display: block;*/
+            position: absolute;
+            /* for placing toast message within form container (relative to form) */
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #0a84ff;
+            color: white;
+            padding: 9px 24px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 10;
+            /* z-index not required in this scenario - But Safe to place on top of form */
+            white-space: nowrap;
+            /* To adjust the width of toast instead of wrapping if message long - but also note the message will wrap if width exceeds max-width */
+            max-width: 90%;
+            /* responsive */
+        }
+
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+        @media screen and (max-width: 700px) {
+
+            /* .greeting-message  {
+            white-space: wrap;
+            } */
+
+            .main-container {
+                flex-direction: column;
+            }
+
+            /* .header {
+                flex-direction: column; 
+                align-items: center;
+            } */
+
+            /* .navbar, */
+            /* .header h2 {
+                flex: 0 0 auto;
+                width: 100%;
+                text-align: center;
+                /* font-size: 0.90rem; /
+            } */
+            /*
+            .navbar {
+                /*justify-content: center;  - commented to adjust login container with welcome message on minimizing scren size */
+            /* flex-wrap: wrap; */
+            /* better for small screens and having many links any navbar /
+            } */
+
+            .navbar {
+                display: none;
+                /* hide links by default */
+                flex-direction: column;
+                background: #34495e;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                padding: 10px;
+            }
+
+            .navbar.show {
+                display: flex;
+                /* toggle on hamburger click */
+            }
+
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media screen and (max-width: 400px) {
+            /*  */
+            .header h2 {
+                flex: 0 0 auto;
+                width: 100%;
+                text-align: center;
+                /* font-size: 0.90rem; */
+            }
+        }

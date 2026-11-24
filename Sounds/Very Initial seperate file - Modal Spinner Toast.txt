@@ -1,0 +1,270 @@
+/* Information written in Body*/
+
+ui-components.js (Modular JS for dynamic inclusion)
+// ui-components.js
+
+// Inject login/register modal
+function showAuthModal() {
+  if (document.getElementById('auth-modal')) return;
+
+  const modalHTML = `
+    <div id="auth-modal" class="modal-overlay">
+      <div class="modal">
+        <h2>Login / Register</h2>
+        <input type="text" placeholder="Username" id="auth-username">
+        <input type="password" placeholder="Password" id="auth-password">
+        <button onclick="submitAuth()">Submit</button>
+        <button onclick="closeAuthModal()">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+// Remove modal
+function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.remove();
+}
+
+// Fake submit logic
+function submitAuth() {
+  closeAuthModal();
+  showSpinner();
+  setTimeout(() => {
+    hideSpinner();
+    showToast("Login successful!");
+  }, 1500);
+}
+
+// Inject toast
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Inject spinner
+function showSpinner() {
+  if (document.getElementById('spinner')) return;
+  const spinnerHTML = `<div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>`;
+  document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+}
+function hideSpinner() {
+  const sp = document.getElementById('spinner');
+  if (sp) sp.remove();
+}
+
+
+Add this once to your <head> in HTML
+html
+Copy
+Edit
+<link rel="stylesheet" href="ui-components.css">
+<script src="ui-components.js" defer></script>
+
+
+
+ui-components.css (Minimal styles)
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+.modal {
+  background: #fff; padding: 20px;
+  border-radius: 8px; box-shadow: 0 0 10px #000;
+  min-width: 300px;
+}
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #333; color: #fff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 1100;
+  opacity: 0.9;
+  max-width: 90%;
+}
+.spinner-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1050;
+}
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #007BFF;
+  border-radius: 50%;
+  width: 40px; height: 40px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+How to use from your HTML:
+Place a login icon in your header like:
+
+<header>
+  <h1>My App</h1>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">About</a>
+    <span onclick="showAuthModal()">
+      <i class="fa fa-user"></i> Login
+    </span>
+  </nav>
+</header>
+This will call showAuthModal(), and all logic stays in the modular JS.
+
+
+/* Information written in integration sheet */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modular UI Demo</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    header {
+      background: #007BFF;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    nav a, nav span {
+      color: white;
+      margin-left: 15px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    nav i {
+      margin-right: 5px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #fff; padding: 20px;
+      border-radius: 8px; box-shadow: 0 0 10px #000;
+      min-width: 300px;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #333; color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      z-index: 1100;
+      opacity: 0.9;
+      max-width: 90%;
+    }
+    .spinner-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.6);
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1050;
+    }
+    .spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #007BFF;
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>My App</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <span onclick="showAuthModal()">
+        <i class="fa fa-user"></i> Login
+      </span>
+    </nav>
+  </header>
+
+  <main style="padding: 20px;">
+    <p>Welcome to the modular UI demo.</p>
+  </main>
+
+  <script>
+    function showAuthModal() {
+      if (document.getElementById('auth-modal')) return;
+      const modalHTML = `
+        <div id="auth-modal" class="modal-overlay">
+          <div class="modal">
+            <h2>Login / Register</h2>
+            <input type="text" placeholder="Username" id="auth-username" style="width: 100%; margin-bottom: 10px;">
+            <input type="password" placeholder="Password" id="auth-password" style="width: 100%; margin-bottom: 10px;">
+            <button onclick="submitAuth()">Submit</button>
+            <button onclick="closeAuthModal()">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHTML);
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-modal');
+      if (modal) modal.remove();
+    }
+
+    function submitAuth() {
+      closeAuthModal();
+      showSpinner();
+      setTimeout(() => {
+        hideSpinner();
+        showToast("Login successful!");
+      }, 1500);
+    }
+
+    function showToast(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showSpinner() {
+      if (document.getElementById('spinner')) return;
+      const spinnerHTML = `<div id="spinner" class="spinner-overlay"><div class="spinner"></div></div>`;
+      document.body.insertAdjacentHTML('beforeend', spinnerHTML);
+    }
+
+    function hideSpinner() {
+      const sp = document.getElementById('spinner');
+      if (sp) sp.remove();
+    }
+  </script>
+</body>
+</html>
+

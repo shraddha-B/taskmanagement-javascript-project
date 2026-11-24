@@ -1,0 +1,260 @@
+project/
+│
+├── index.html
+└── js/
+    ├── main.js           # ✅ Entry point (runs on page load)
+    ├── auth.js           # Auth modal logic & UI events
+    ├── auth-service.js   # User data (localStorage) logic
+    ├── session.js        # Current user session logic only
+    ├── toast.js          # Toast notification module
+    └── spinner.js        # Spinner loading animation
+
+
+auth.js (modular, self-contained)
+import { showToast } from './toast.js';
+import { showSpinner, hideSpinner } from './spinner.js';
+import {
+  registerUser, loginUser,
+  isUserExist, validatePassword
+} from './auth-service.js';
+import { setCurrentUser } from './session.js';
+import { getUsers, saveUsers } from './storage.js';
+
+let mode = 'login';
+
+const modal = document.getElementById('authModal');
+const modalContent = document.getElementById('modalContent');
+const titleEl = document.getElementById('formTitle');
+const switchLink = document.getElementById('switchLink');
+const submitBtn = document.getElementById('submitBtn');
+const confirmRow = document.getElementById('confirmRow');
+const errorContainer = document.getElementById('errorContainer');
+
+function injectAuthForm() {
+const modalHTML = `
+      <div class="modal" id="authModal">
+        <div class="modal-content" id="modalContent">
+            <h2 id="formTitle">Login</h2>
+            <div id="errorContainer" class="error-msg"></div>
+            <form id="authForm">
+                <input type="text" id="username" placeholder="Username / Email" />
+                <input type="password" id="password" placeholder="Password" />
+                <div id="confirmRow">
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" />
+                </div>
+                <button type="submit" id="submitBtn">Login</button>
+            </form>
+            <span class="switch-link" id="switchLink">Don' t have an account? <u>Register</u></span>
+        </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // document.getElementById('submitBtn').onclick = submitAuth; // not neeed as below from submit event is defined
+}
+
+export function showAuthModal(startMode = 'login') {
+  mode = startMode;
+  if(!modal) injectAuthForm();
+  updateForm();
+  modal.classList.add('show');	//document.getElementById('authModal')?.classList.add('show');
+}
+
+export function closeAuthModal() {
+  const modal = document.getElementById('auth-modal');
+  if (modal) modal.remove();
+}
+
+
+function updateForm() {
+  if (mode === 'login') {
+    modalContent.classList.remove('register');
+    confirmRow.style.display = 'none';
+    titleEl.textContent = 'Login';
+    submitBtn.textContent = 'Login';
+    switchLink.innerHTML = "Don't have an account? <u>Register</u>";
+  } else {
+    modalContent.classList.add('register');
+    confirmRow.style.display = 'block';
+    titleEl.textContent = 'Register';
+    submitBtn.textContent = 'Register';
+    switchLink.innerHTML = 'Already have an account? <u>Login</u>';
+  }
+  errorContainer.textContent = '';
+}
+
+switchLink.addEventListener('click', () => {
+  mode = mode === 'login' ? 'register' : 'login';
+  updateForm();
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) closeAuthModal();
+});
+
+document.getElementById('authForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  errorContainer.textContent = '';
+
+  const username = document.getElementById('username');
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+
+  [username, password, confirmPassword].forEach(el => el.classList.remove('error'));
+
+  const name = username.value.trim();
+
+  if (!name) {
+    username.classList.add('error');
+    errorContainer.textContent = 'Username is required';
+    return;
+  }
+  if (!password.value || password.value.length < 6) {
+    password.classList.add('error');
+    errorContainer.textContent = 'Password must be at least 6 characters';
+    return;
+  }
+
+  showSpinner();
+
+  setTimeout(() => {
+    if (mode === 'register') {
+      if (!confirmPassword.value || password.value !== confirmPassword.value) {
+        confirmPassword.classList.add('error');
+        errorContainer.textContent = 'Passwords do not match';
+        hideSpinner();
+        return;
+      }
+      if (isUserExist(name)) {
+        errorContainer.textContent = 'User already exists';
+        hideSpinner();
+        return;
+      }
+      registerUser(name, password.value);
+      showToast('Registered successfully!');
+      mode = 'login';
+      updateForm();
+    } else {
+      if (!isUserExist(name)) {
+        errorContainer.textContent = 'User not found. Please register.';
+        hideSpinner();
+        return;
+      }
+      if (!validatePassword(name, password.value)) {
+        errorContainer.textContent = 'Incorrect password';
+        hideSpinner();
+        return;
+      }
+      loginUser(name);
+      setCurrentUser(name);
+      showToast('Login successful!');
+      setTimeout(() => {
+        window.location.href = 'dashboard2.html';
+      }, 1000);
+    }
+    hideSpinner();
+  }, 1000);
+});
+
+
+storage.js (Data access abstraction layer)
+export function getUsers() {
+  return JSON.parse(localStorage.getItem('users') || '{}');
+}
+
+export function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+
+auth-service.js
+import { getUsers, saveUsers } from './storage.js';
+
+export function registerUser(name, password) {
+  const users = getUsers();
+  users[name] = { password, isFirstLogin: true };
+  saveUsers(users);
+}
+
+export function loginUser(name) {
+  const users = getUsers();
+  users[name].isFirstLogin = false;
+  saveUsers(users);
+}
+
+export function isUserExist(name) {
+  const users = getUsers();
+  return !!users[name];
+}
+
+export function validatePassword(name, password) {
+  const users = getUsers();
+  return users[name]?.password === password;
+}
+
+
+session.js
+export function getCurrentUser() {
+  return localStorage.getItem('currentUser');
+}
+
+export function setCurrentUser(name) {
+  localStorage.setItem('currentUser', name);
+}
+
+export function clearCurrentUser() {
+  localStorage.removeItem('currentUser');
+}
+
+
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Modular Auth Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>My App</h1>
+    <a href="#" id="openModal">Login/Register</a>
+  <span id="login-btn">
+        <i class="fa fa-user"></i> Login
+      </span>
+  </header>
+
+
+main html
+
+1st option
+import { showAuthModal } from './auth.js';
+import { getCurrentUser } from './session.js';
+
+document.getElementById('openModal').addEventListener('click', e => {
+  e.preventDefault();
+  showAuthModal('login');
+});
+
+const user = getCurrentUser();
+if (user) {
+  document.body.insertAdjacentHTML(
+    'afterbegin',
+    `<h2 style="border:solid;text-align:center; color: white;">Welcome back, ${user}!</h2>`
+  );
+}
+
+2nd Option
+// main.js
+import { injectAuthModalUI, showAuthModal, initAuthHandlers, getCurrentUser } from './auth.js';
+
+injectAuthModalUI();
+initAuthHandlers();
+
+document.getElementById('login-btn').onclick = showAuthModal;
+
+const user = getCurrentUser();
+if (user) {
+  document.getElementById('welcomeMessage').textContent = `Welcome back, ${user}!`;
+}
+

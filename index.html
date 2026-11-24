@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="Styles/ui-components.css">
+    <script type="module" src="JSComponents/main.js"></script>
+    <title>Document</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            /*padding: 0 30px;*/
+            background-color: #F5F5DC;  /* #ffffff; */
+            /* rgb(83, 80, 80); /*rgb(34, 100, 123);*/
+            margin: 0;
+            /* to remove default body margin */
+        }
+
+        body,
+        html {
+            max-width: 100vw;
+        }
+
+        /*         
+        html {
+         
+            scroll-behavior: auto !important;
+            overflow: hidden;
+
+        } */
+
+        /* html { */
+        /* scroll-padding-top: 80px; */
+        /* adjust as per your fixed header height */
+        /* scroll-behavior: smooth; */
+        /* } */
+
+        /* Style Parent Container */
+        .parent-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /*Pushes footer at bottom - Here not needed as footer is fixed */
+        }
+
+        /* Migrated */
+        /* Style Header */
+        /*
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            /* Allow items to wrap on smaller screens
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background-color: rgb(34, 100, 123);
+            position: sticky;
+            top: 0;
+            z-index: 11;
+            /* To place at top of Banner
+        }
+
+        /* Style Navbar
+        .navbar {
+            display: flex;
+            flex: 4;
+            gap: 15px;
+            margin: 0;
+        }
+
+        /* Style Title h2 in Header
+        .header h2 {
+            flex: 6;
+            color: #F5F5DC;
+            margin: 0;
+        }
+
+        /* Style Navigation Bar links
+        .navbar a {
+            color: rgb(222, 217, 217);
+        }
+
+        /* Change color on hover
+        .navbar a:hover {
+            background-color: rgb(133, 211, 236);
+            color: rgb(34, 100, 123);
+            border-radius: 3px;  
+        }
+        */
+
+        /* Migrated */
+        /* Login/Register Style
+        .login-wrapper {
+            position: fixed;
+            top: 15px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        .login-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-icon {
+            cursor: pointer;
+        }
+
+        .login-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgb(44, 130, 159);
+            border-radius: 10px;
+            white-space: nowrap;
+            border: 2px solid whitesmoke;
+        }
+
+        .login-container:hover .login-dropdown {
+            display: block;
+        }
+
+        .login-dropdown a {
+            display: block;
+            padding: 8px 20px;
+            color: whitesmoke;
+            text-decoration: none;
+        }
+
+        .login-dropdown a:hover {
+            background-color: rgb(34, 100, 123);
+            border-radius: 10px;
+            /* included for after hovering the border raidus effect remains effective (else it is not)
+        }
+        */
+
+        /* Migrated */
+        /* Banner Fade Slider Style
+        .banner-fade-slider {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px;
+            /*overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        button.prev,
+        button.next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2;
+            /*TO keep buttons all the time (visible) above slides
+        }
+
+        button.prev {
+            left: 10px;
+        }
+
+        button.next {
+            right: 10px;
+        }
+        */
+
+        /* Migrated */
+        /* Footer Style
+        .footer {
+            margin: 0;
+            height: 7%;
+            background-color: rgb(34, 100, 123);
+            color: white;
+            /* Need to place footer fixed with three offsets to avoid scrollbars after adding animation of scrolling from right to left
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .logo-container {
+            display: flex;
+            gap: 50px;
+            position: absolute;
+            align-items: center;
+            height: 100%;
+            /* For Center vertically div within Footer - top and transform properties
+            top: 50%;
+            transform: translateY(-50%);
+            white-space: nowrap;
+            animation: scrollLeft 70s linear infinite;
+        }
+
+        .logo {
+            width: 80px;
+            height: 30px;
+            transition: transform 2.5s ease-in-out;
+            animation: pulseGlow 10s infinite ease-in-out;
+        }
+
+        /* focus effect
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.3));
+            }
+
+            50% {
+                transform: scale(1.3);
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+            }
+        }
+
+        /* Move logos right to left
+        @keyframes scrollLeft {
+            0% {
+                left: 100%;
+            }
+
+            100% {
+                left: -100%;
+            }
+        }
+        */
+
+        /* Column container */
+        .main-container {
+            display: flex;
+            margin: 10px;
+            /*border: solid red;*/
+            flex-wrap: wrap;
+            gap: 10px;
+            /* space between items */
+        }
+
+        /* Create two unequal columns that sits next to each other */
+        /* Leftbar/left column */
+        .left {
+            flex: 3;
+            /*Best option*/
+            /*flex: 0 0 30%;*/
+            background-color: rgb(44, 130, 159);
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 100%;
+        }
+
+        .left h3 {
+            color: #F5F5DC;
+            text-align: center;
+        }
+
+        /* Migrated */
+        /* Toggle Panel Style */
+        /*
+        .toggle-panel-container {
+            max-width: 600px;
+            /*border: solid;*/
+        /* border: 1px solid lightblue;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+        }
+
+        .toggle-panel-section {
+            padding: 15px;
+        }
+
+        .toggle-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid lightblue;
+            border-radius: 10px;
+        }
+
+        .toggle-panel-arrow {
+            color: lightblue;
+            padding-right: 5px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-panel-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .toggle-panel-content {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.5s ease;
+            padding: 0 15px;
+        }
+
+        .toggle-panel-content>div {
+            padding: 15px 0;
+        }
+        */
+
+        /* Right column */
+        .right {
+            flex: 7;
+            /* Best option instead of calc */
+            /* flex: 0 0 calc(70% - 10px); */
+            background-color: transparent;
+            padding: 10px 20px 20px;
+            border: 1px solid darkgrey;
+            border-radius: 20px;
+            max-width: 100%;
+            /* to avoid overflow right container (child container) from it's main-container (parent container) - this also stops overflowing reated by fixed footer*/
+        }
+
+        /* about-section Style */
+        .about-section {
+            /*background-color: #F5F5DC;*/
+            width: 100%;
+            height: 25px;
+            font-weight: 500;
+            padding-left: 5px;
+            /*border: 1px solid lightblue;
+            border-radius: 10px; */
+            color: #F5F5DC;
+            /* Keeps within container div tag instead of extending out of container causing scroll bars */
+        }
+
+        /* Contact container */
+        .contact-container {
+            /*background-color: rgb(44, 130, 159);*/
+            margin: 0 10px 70px;
+            padding: 0 20px;
+            color: rgb(34, 100, 123);
+            /*border: solid red;*/
+            flex-wrap: wrap;
+            border: 1px solid darkgrey;
+            border-radius: 20px;
+        }
+
+        .contact-columns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .contact-columns .column {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            overflow-wrap: break-word;
+            /* to break the long words leading to overflow the contents */
+        }
+
+        .right-top-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /*
+        right-top-container-right-side {
+            display: flex;
+            justify-content: space-between;
+            /*align-items: flex-start;
+            gap: 10px;
+            background-color: rgb(44, 130, 159);
+            padding: 10px;
+            margin: 5px 30px 0;
+            /*For avoiding animation flickering bublled from todo list*/
+        /*background-color: white; - background needed if element is tranparent*/
+        /*
+            z-index: 10;
+            transform: translateZ(0);
+            isolation: isolate;
+            contain: paint;
+            overflow: visible;
+        }*/
+
+        .right-top-container-left-side {
+            display: flex;
+            flex-direction: column;
+            flex: 5;
+            /* 0 1 50%; */
+            /*flex-wrap: wrap;
+            min-width: 0;*/
+            justify-content: flex-start;
+            /*align-items: first baseline;*/
+        }
+
+        h1 {
+            color: rgb(34, 100, 123);
+            font-weight: 900;
+            margin-top: 0;
+        }
+
+        .right p,
+        h4,
+        .right h2 {
+            color: rgb(34, 100, 123);
+        }
+
+        .right-top-container-left-side h3 {
+            color: rgb(34, 100, 123);
+        }
+
+        .right-top-container-right-side {
+            /*display: flex;*/
+            flex: 5;
+            /* 0 1 50%; */
+            min-width: 0;
+            justify-content: center;
+            align-items: center;
+            /*border-radius: ;*/
+            padding: 10px 0 20px;
+        }
+
+        /* Card Style */
+        .card-outer-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            /*flex: 0 1 50%;
+            min-width: 0;*/
+            justify-content: center;
+            align-items: center;
+            /*border-radius: ;
+            /*padding-right: 40px;*/
+        }
+
+        .cardContainer {
+            /*float: left;*/
+            display: flex;
+            flex-direction: column;
+            width: 150px;
+            aspect-ratio: 1/1;
+            border: 1px solid black;
+            /*box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);*/
+            box-shadow: 10px 10px 5px black;
+            text-align: center;
+        }
+
+        .cardHeader {
+            flex: 7;
+            /*background-color: pink;*/
+            /* moved to individual for different colors */
+            color: black;
+            font-size: 12px;
+        }
+
+        .cardFooter {
+            flex: 3;
+            background-color: whitesmoke;
+            border: solid whitesmoke;
+            font-size: 10px;
+        }
+
+        .card_rotate_right {
+            transform: rotate(7deg);
+            background-color: pink;
+        }
+
+        .card_rotate_left {
+            transform: rotate(-8deg);
+            background-color: lightblue;
+        }
+
+        /* Aspect section */
+        .right-key-aspects-section {
+            margin-top: 30px;
+        }
+
+        .key-aspects-columns {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            /* for responsiveness */
+        }
+
+        .key-aspects-columns .column {
+            flex: 1;
+            min-width: 200px;
+            background-color: #eee;
+            padding: 15px;
+            border: 1px solid rgb(34, 100, 123);
+            border-radius: 20px;
+            box-shadow: 5px 1px 10px 1px  rgb(0, 0, 0);
+        }
+
+        .column h3 {
+            color: rgb(34, 100, 123);
+        }
+
+        /* Aspect section */
+
+        .custom-list {
+            list-style: none;
+            padding-left: 0;
+            color: rgb(34, 100, 123);
+        }
+
+        .custom-list li {
+            position: relative;
+            padding-left: 1.8em;
+            /* creates space for tick bullet */
+            margin-bottom: 8px;
+        }
+
+        .custom-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0.15em;
+            /* vertical alignment tweak */
+            color: rgb(34, 100, 123);
+            font-weight: bold;
+        }
+       
+        
+        /* @media screen and (max-width: 700px) {
+            /* .login-wrapper {
+                flex-direction: column;
+            }
+
+        } */
+
+        
+
+        /*media query */
+    </style>
+</head>
+
+<body>
+    <div class="parent-container">
+        <!--Migrated in header and login component-->
+        <!-- Migrated Header
+        <header class="header">
+            Navigation Bar
+            <div class="navbar">
+                <a href="#">Home</a>
+                <a href="#">Todo</a>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+            </div>
+            <h2>Task Management App</h2>
+            Login Icon + Dropdown
+            <div class="login-wrapper">
+                <div class="login-container">
+                    <span class="login-icon"><i class="fa-solid fa-user" style="color: white;"></i></span>
+                    <div class="login-dropdown">
+                        <a href="#" id="openModal">Login / Register</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        -->
+        
+        <!-- Banner - Fade slider -->
+        <div class="banner-fade-slider">
+            <!-- Migrated
+            <img src="Pictures\Slide1.jpg" class="slide active">
+            <img src="Pictures\Slide2.jpg" class="slide">
+            <img src="Pictures\Slide3.jpg" class="slide">
+            <img src="Pictures\Slide4.jpg" class="slide">
+
+            <button class="prev">&#10094;</button>
+            <button class="next">&#10095;</button>
+            -->
+        </div>
+
+        <div class="main-container">
+            <div id="about" class="left">
+                <h2>About</h2>
+                <p>We are into the task management services business since, 30 years more, eastablished in year 1990 and
+                    successfully delivered our
+                    services worldwide with satisfied clients and we are to bring more upcoming projects.</p>
+
+                <!-- Toogle Panel Container -->
+                <div class="toggle-panel-container">
+                    <!-- Toggle Panel Section 1 -->
+                    <div class="toggle-panel-section">
+                        <div class="toggle-panel-header" onclick="toggleSection(this)">
+                            <span class="about-section">Our Purpose</span>
+                            <span class="toggle-panel-arrow">▶</span>
+                        </div>
+                        <div class="toggle-panel-content">
+                            <p>Our purpose is to provide the task management services to corporates and individuals to
+                                stay
+                                organized in the world of constantly moving, prioritizing responsibilities on the way
+                                and
+                                managing
+                                today’s work life chaos.</p>
+                            <p style="font-style: italic">Improve Productivity, Time Management, Reducing Stress and
+                                Anxiety,
+                                Holding Accountability and
+                                Conceiving Better Organization of Thoughts.</p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Panel Section 2 -->
+                    <div class="toggle-panel-section">
+                        <div class="toggle-panel-header" onclick="toggleSection(this)">
+                            <span class="about-section">Our Goal</span>
+                            <span class="toggle-panel-arrow">▶</span>
+                        </div>
+                        <div class="toggle-panel-content">
+                            <p>Our goal is to bring business, social and individual level task management into complete
+                                digitalization bringing paperless schedule management and completely go green.</p>
+                            <p>
+                                We help world to shape their work and daily schedule by giving the initiative to bring
+                                manageable
+                                scheduling tasks and stay without anxiety to miss the responsibilities.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Panel Section 3 -->
+                    <div class="toggle-panel-section">
+                        <div class="toggle-panel-header" onclick="toggleSection(this)">
+                            <span class="about-section">Our contribution</span>
+                            <span class="toggle-panel-arrow">▶</span>
+                        </div>
+                        <div class="toggle-panel-content">
+                            <p>We are committed to our contribution with efforts to provide more reliable paperless
+                                services
+                                and
+                                contribute to the safety of environment at same time.</p>
+                        </div>
+                    </div>
+
+                    <!-- Toggle Panel Section 4 -->
+                    <div class="toggle-panel-section">
+                        <div class="toggle-panel-header" onclick="toggleSection(this)">
+                            <span class="about-section">Our Community</span>
+                            <span class="toggle-panel-arrow">▶</span>
+                        </div>
+                        <div class="toggle-panel-content">
+                            <p>We are glad to be part of the community and will continue to serve our reliable services
+                                to
+                                more
+                                clients in future.</p>
+                            <p>
+                        </div>
+                    </div>
+
+                </div>
+                <!-- Toogle Panel Container -->
+
+                <h3>Be Organized! Happy Life!</h3>
+                </p>
+            </div>
+
+            <div class="right">
+                <!--Top container-->
+                <div class="right-top-container">
+                    <div class="right-top-container-left-side">
+                        <h1>Be Organized with our task management
+                            servies!!
+                        </h1>
+                        <h3>Register yourself for getting started...</h3>
+                    </div>
+
+                    <div class="right-top-container-right-side">
+                        <!-- Text Cards -->
+                        <div class="card-outer-container">
+                            <div class="cardContainer card_rotate_right">
+                                <div class="cardHeader">
+                                    <b>
+                                        <ul>
+                                            <li>Todo 1</li>
+                                            <li>Todo 2</li>
+                                            <li>Todo 3</li>
+                                        </ul>
+                                    </b>
+                                </div>
+
+                                <div class="cardFooter">
+                                    <p><b>August 30, 2025</b></p>
+                                </div>
+                            </div>
+
+                            <div class="cardContainer card_rotate_left">
+                                <div class="cardHeader">
+                                    <b>
+                                        <ul>
+                                            <li>Todo 1</li>
+                                            <li>Todo 2</li>
+                                            <li>Todo 3</li>
+                                        </ul>
+                                    </b>
+                                </div>
+
+                                <div class="cardFooter">
+                                    <p><b>August 2, 2025</b></p>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- Text Cards -->
+                    </div>
+                </div>
+                <!--Top container-->
+
+
+                <h4>Why Us...</h4>
+                <p>We are one of the leading companies serving reliable task management services seamlesly to our
+                    clients, world wide across 30 countries with 24*7 support in preferred languages.</p>
+
+
+                <!--Aspects container <h5>Title description, Sep 2, 2024</h5> -->
+                <div class="right-key-aspects-section">
+                    <h2>Key Aspects</h2>
+
+                    <div class="key-aspects-columns">
+                        <div class="column">
+                            <h3>Core Functionality</h3>
+                            <ul class="custom-list">
+                                <li><strong>Task Management:</strong> Users can add new tasks
+                                    with details like
+                                    descriptions,
+                                    due dates, and priorities. </li>
+                                <li><strong>Task Completion:</strong> Users can mark tasks as
+                                    completed, often with a
+                                    visual indicator.</li>
+                                <li></span><strong>Task Deletion:</strong> Ability to remove tasks
+                                    from the list.</li>
+                                <li><strong>Task Organization:</strong> Tasks can be ordered/filtered
+                                    by priority, due date, or
+                                    status.</li>
+                            </ul>
+                        </div>
+
+                        <div class="column">
+                            <h3>Advanced Features & Benefits</h3>
+                            <ul class="custom-list">
+                                <li><strong>Prioritization:</strong> Assigning priority levels to tasks to focus on
+                                    what's most important.</li>
+                                <li><strong>Reminders & Due Dates:</strong> Setting deadlines and receiving reminders
+                                    for upcoming or
+                                    overdue tasks.</li>
+                                <li><strong>Sorting and Filtering:</strong> Organizing and searching tasks based on
+                                    various criteria like
+                                    due date, priority, or completion status.</li>
+                                <li><strong>Responsive Design:</strong> Ensuring the application works well on desktops,
+                                    tablets, and
+                                    mobile devices.</li>
+                                <li><strong>User-Friendly Interface:</strong> An intuitive and easy-to-navigate design.
+                                </li>
+                                <li><strong>Team Management (Optional):</strong> For team-based projects, the ability to
+                                    assign tasks to
+                                    individuals.</li>
+                            </ul>
+                        </div>
+
+                        <div class="column">
+                            <h3>Benefits of using</h3>
+                            <ul class="custom-list">
+                                <li><strong>Increased Productivity:</strong> Helps users focus on priorities and work
+                                    more
+                                    efficiently.</li>
+                                <li><strong>Improved Time Management:</strong> Facilitates allocating time effectively
+                                    and
+                                    staying on schedule.</li>
+                                <li><strong>Reduced Stress and Anxiety:</strong> Provides a sense of control and
+                                    minimizes
+                                    the fear of
+                                    forgetting important tasks.</li>
+                                <li><strong>Accountability:</strong> Holds individuals and teams accountable for
+                                    completing
+                                    assigned tasks and
+                                    meeting deadlines.</li>
+                                <li><strong>Better Organization of Thoughts:</strong> Writing down tasks helps declutter
+                                    the
+                                    mind and focus on
+                                    the task at hand.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!--Aspects container-->
+
+                <p>We keep you Organized by Improving Productivity, Improving Time Management, Reducing Stress and
+                    Anxiety, Holding Accountability and Conceiving Better Organization of Thoughts.</p>
+            </div>
+        </div>
+
+        <!-- Contact Container  -->
+        <div id="contact" class="contact-container">
+            <h3>Contact Us</h3>
+            <div class="contact-columns">
+                <div class="column">
+                    <p><strong>Registered Head Office Address:</strong><br>
+                        ABC Task Management Services Pvt. Ltd., Building XYZ,
+                        Tower No. 0,
+                        Area 1, Area Location, xyzState, 000000, xyzCountry </p>
+                </div>
+                <div class="column">
+                    <p><strong>Our email-id:</strong><br> connect@abcmanagementserv.com</p>
+                    <p><strong>Grievance email-id:</strong><br> grievance@abcmanagementserv.com</p>
+                </div>
+                <div class="column">
+                    <p><strong>Our Regional Toll free Contact:</strong><br> 0000000000</p>
+                    <p><strong>Our International Toll free Contact:</strong><br> +0 000 000-0000</p>
+                </div>
+            </div>
+            <p><strong>For grievances</strong> frequent Unique case reference number assigned for seamless follow-ups. A
+                dedicated
+                advisor
+                will be assigned to manage your case and resolve your concerns efficiently. Escalations will be
+                considered on highest priority.</p>
+        </div>
+        <!-- Contact Container -->
+
+        <!-- Migrated -->
+        <!-- Footer -->
+        <!--
+        <footer class="footer">
+            <div class="logo-container" id="logoContainer">
+                <h5>Our trusted partners</h5>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Google_Logo.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Apple-logo.png" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+                    class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Logo_Twitter.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/1/19/YouTube_logo_2017.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Google_Logo.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Google_Logo.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Google_Logo.svg" class="logo" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Google_Logo.svg" class="logo" />
+            </div>
+
+        </footer>
+        -->
+
+    </div>
+
+    <script>
+        /* Wlecome message */
+        /* 
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelector("header").insertAdjacentHTML("afterbegin", `<h2 style="color: white;">Welcome back checking error , !</h2>`);
+        });
+        */
+
+        /* Banner - Slide Show; */
+        // function slideShow() {
+        const slides = document.querySelectorAll('.slide');
+        const slider = document.querySelector(".banner");
+        let current = 0;
+        startInterval(nextSlide, 3000);
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+        }
+
+        function nextSlide() {
+            current = (current + 1) % slides.length;
+            showSlide(current);
+        }
+
+        function previousSlide() {
+            current = (current - 1 + slides.length) % slides.length;
+            showSlide(current);
+        }
+
+        document.querySelector('.next').addEventListener('click', () => {
+            nextSlide();
+            clearInterval(intervalId);
+        });
+
+        document.querySelector('.prev').addEventListener('click', () => {
+            previousSlide();
+            clearInterval(intervalId);
+        });
+
+        slider.addEventListener("mouseenter", () => { clearInterval(intervalId); });
+
+        slider.addEventListener("mouseleave", () => { startInterval(); /*intervalId = setInterval(nextSlide, 3000);*/ });
+
+        // Optional: auto-play every 4s
+        function startInterval() {
+            //clearInterval(intervalId);
+            intervalId = setInterval(nextSlide, 3000);
+        }
+        // }
+
+        /* Toggle Panel */
+        function toggleSection(headerEl) {
+            const content = headerEl.nextElementSibling;
+            const arrow = headerEl.querySelector('.toggle-panel-arrow');
+
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                // collapse
+                content.style.maxHeight = content.scrollHeight + "px"; // ensure full height before collapsing
+                requestAnimationFrame(() => {
+                    content.style.maxHeight = "0px";
+                });
+                arrow.classList.remove("open");
+            } else {
+                // expand
+                content.style.maxHeight = content.scrollHeight + "px";
+                arrow.classList.add("open");
+
+            }
+        }
+
+    </script>
+</body>
+
+</html>
